@@ -1,41 +1,23 @@
-# EasyLotto License Server (Railway)
+# EasyLotto License Server (Phase 3.2)
 
-## Deploy Steps
-1) Push repo to GitHub
-2) Railway -> New Project -> Deploy from GitHub Repo
-3) Add Postgres plugin
-4) Add ENV:
-- JWT_SECRET=... (สุ่มยาวๆ)
-- LICENSE_MASTER_KEY=... (สุ่มยาวๆ/เก็บเป็นความลับ)
-- ADMIN_EMAIL=you@domain.com
-- ADMIN_PASSWORD=strongpassword
+License + Login server for EasyLotto (Annual license, machine bind, multi-user roles).
 
-Railway จะ inject DATABASE_URL ให้อัตโนมัติเมื่อเชื่อม Postgres
+## Quick Start
+1) `cp .env.example .env` แล้วใส่ `DATABASE_URL`, `JWT_SECRET`, `LICENSE_MASTER_KEY`
+2) `npm i`
+3) `npm run db:init`
+4) `npm run seed:admin`
+5) `npm start`
 
-## API Quick Test
-GET /health
+## Railway
+- Create service from repo
+- Variables: `DATABASE_URL` (ref Postgres), `JWT_SECRET`, `LICENSE_MASTER_KEY`
+- Health: `GET /health`
 
-### Admin Login
-POST /admin/login
-{ "email": "...", "password": "..." }
-
-### Create License
-POST /admin/licenses
-Authorization: Bearer <adminToken>
-{ "plan": "PRO", "years": 1, "seats": 3, "note": "customer A" }
-
-### Activate (ครั้งแรก)
-POST /license/activate
-x-machine-fp: <fingerprint>
-{ "licenseKey":"EL....", "orgName":"ร้าน A", "ownerEmail":"a@x.com", "ownerPassword":"123456" }
-
-### Login
-POST /auth/login
-x-machine-fp: <fingerprint>
-{ "email":"a@x.com", "password":"123456" }
-
-### Owner create clerk
-POST /users
-Authorization: Bearer <ownerToken>
-x-machine-fp: <fingerprint>
-{ "email":"clerk@x.com", "password":"123456", "role":"clerk" }
+## API
+- POST /auth/login
+- GET /me (Bearer)
+- POST /admin/licenses (admin) ออก license
+- POST /admin/users (admin) เพิ่ม user ตาม seat
+- POST /license/activate ผูกเครื่องครั้งแรก
+- POST /license/validate ตรวจ + feature gate

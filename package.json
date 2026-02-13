@@ -1,12 +1,14 @@
 {
   "name": "easylotto-license-server",
-  "version": "1.0.0",
-  "description": "EasyLotto License + Auth Server (Machine-locked, Seats, Yearly)",
-  "main": "src/server.js",
+  "version": "3.2.0",
+  "private": true,
   "type": "commonjs",
+  "main": "index.js",
   "scripts": {
-    "dev": "node src/server.js",
-    "start": "node src/server.js"
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "db:init": "node scripts/db_init.js",
+    "seed:admin": "node scripts/seed_admin.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -15,6 +17,14 @@
     "express": "^4.19.2",
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
-    "pg": "^8.12.0"
+    "morgan": "^1.10.0",
+    "pg": "^8.11.5",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }
