@@ -1,37 +1,26 @@
--- src/schema.sql
-
 CREATE TABLE IF NOT EXISTS licenses (
-  id TEXT PRIMARY KEY,
-  plan TEXT NOT NULL,                -- BASIC / PRO / BUSINESS
-  seats INTEGER NOT NULL,            -- จำนวนคนคีย์ที่อนุญาต
-  expires_at TIMESTAMPTZ NOT NULL,
-  issued_at TIMESTAMPTZ NOT NULL,
-  note TEXT,
-
+  id BIGSERIAL PRIMARY KEY,
   license_key_hash TEXT NOT NULL UNIQUE,
-
-  status TEXT NOT NULL DEFAULT 'issued',  -- issued / active / revoked
-  org_id TEXT,
-  machine_fp TEXT,                   -- ผูกเครื่องเดียว
-  activated_at TIMESTAMPTZ
-);
-
-CREATE TABLE IF NOT EXISTS orgs (
-  id TEXT PRIMARY KEY,
-  name TEXT NOT NULL,
-  license_id TEXT NOT NULL REFERENCES licenses(id),
-  created_at TIMESTAMPTZ NOT NULL
+  customer_name TEXT NOT NULL,
+  plan TEXT NOT NULL CHECK (plan IN ('basic','pro','business')),
+  expires_at TIMESTAMPTZ NOT NULL,
+  max_users INT NOT NULL DEFAULT 1,
+  bound_machine_id TEXT NULL,
+  activated_at TIMESTAMPTZ NULL,
+  note TEXT NOT NULL DEFAULT '',
+  meta_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS users (
-  id TEXT PRIMARY KEY,
-  org_id TEXT NOT NULL REFERENCES orgs(id),
-  email TEXT NOT NULL,
+  id BIGSERIAL PRIMARY KEY,
+  license_id BIGINT NOT NULL REFERENCES licenses(id) ON DELETE CASCADE,
+  email TEXT NOT NULL UNIQUE,
   password_hash TEXT NOT NULL,
-  role TEXT NOT NULL,                 -- owner / clerk
-  created_at TIMESTAMPTZ NOT NULL,
-  UNIQUE(org_id, email)
+  role TEXT NOT NULL CHECK (role IN ('admin','owner','clerk')),
+  display_name TEXT NOT NULL DEFAULT '',
+  license_key_hash TEXT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_users_org ON users(org_id);
-CREATE INDEX IF NOT EXISTS idx_licenses_org ON licenses(org_id);
+CREATE INDEX IF NOT EXISTS idx_users_license_id ON users(license_id);
