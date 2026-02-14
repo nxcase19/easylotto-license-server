@@ -1,42 +1,28 @@
-// src/db.js
+'use strict';
 const { Pool } = require('pg');
-const { DATABASE_URL } = require('./config');
+
+function requireEnv(name){ const v=process.env[name]; if(!v) throw new Error(`Missing env: ${name}`); return v; }
 
 const pool = new Pool({
-  connectionString: DATABASE_URL,
-  ssl: DATABASE_URL.includes('localhost') ? false : { rejectUnauthorized: false }
+  connectionString: requireEnv('DATABASE_URL'),
+  ssl: process.env.PGSSLMODE === 'disable' ? false : { rejectUnauthorized: false }
 });
 
-async function q(text, params) {
-  const res = await pool.query(text, params);
-  return res;
-}
+async function query(text, params){ return pool.query(text, params); }
 
-async function one(text, params) {
-  const res = await pool.query(text, params);
-  return res.rows[0] || null;
-}
-
-async function tx(fn) {
+async function tx(fn){
   const client = await pool.connect();
-  try {
+  try{
     await client.query('BEGIN');
-    const api = {
-      q: (t, p) => client.query(t, p),
-      one: async (t, p) => {
-        const r = await client.query(t, p);
-        return r.rows[0] || null;
-      }
-    };
-    const out = await fn(api);
+    const res = await fn(client);
     await client.query('COMMIT');
-    return out;
-  } catch (e) {
-    await client.query('ROLLBACK');
+    return res;
+  }catch(e){
+    try{ await client.query('ROLLBACK'); }catch{}
     throw e;
-  } finally {
+  }finally{
     client.release();
   }
 }
 
-module.exports = { pool, q, one, tx };
+module.exports = { pool, query, tx };
