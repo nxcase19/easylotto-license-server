@@ -1,3 +1,21 @@
+'use strict';
+
+const express = require('express');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+
+const { loginSchema } = require('../validators');
+const { findUserByEmail } = require('../repos/users');
+const { findLicenseById } = require('../repos/licenses');
+
+function requireEnv(name){
+  const v = process.env[name];
+  if(!v) throw new Error(`Missing env: ${name}`);
+  return v;
+}
+
+const router = express.Router();
+
 router.post('/login', async (req,res)=>{
   try{
 
@@ -65,3 +83,5 @@ router.post('/login', async (req,res)=>{
     return res.status(500).json({ ok:false, error:'server_error' });
   }
 });
+
+module.exports = router;
