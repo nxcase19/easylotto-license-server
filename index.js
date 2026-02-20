@@ -30,3 +30,9 @@ app.use((err,req,res,next)=>{ console.error('[error]', err); res.status(500).jso
 
 const port = Number(process.env.PORT || 3000);
 app.listen(port, ()=>console.log(`[boot] listening on :${port}`));
+app.use((err, req, res, next) => {
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    return res.status(400).json({ ok:false, error:'invalid_json' });
+  }
+  next();
+});
